@@ -1,0 +1,61 @@
+#!/bin/sh
+# UserData.sh -- github.com/WpTestLabs/Packer-Terraform/CloudInit-UserData-Centos-Packer
+
+iptables -A INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+iptables -A INPUT -i lo -j ACCEPT
+iptables -A INPUT -m conntrack --ctstate INVALID -j DROP
+iptables -A INPUT -i eth0 -p tcp --dport 22 -m state --state NEW,ESTABLISHED -j ACCEPT
+iptables -P INPUT DROP
+iptables -P FORWARD DROP
+
+cat >/etc/ssh/sshd_config <<EOF
+HostKey /etc/ssh/ssh_host_rsa_key
+HostKey /etc/ssh/ssh_host_ecdsa_key
+HostKey /etc/ssh/ssh_host_ed25519_key
+SyslogFacility AUTHPRIV
+AuthorizedKeysFile .ssh/authorized_keys
+PasswordAuthentication no
+ChallengeResponseAuthentication no
+GSSAPIAuthentication yes
+GSSAPICleanupCredentials no
+UsePAM yes
+X11Forwarding no
+UsePrivilegeSeparation sandbox          # Default for new installations.
+AcceptEnv LANG LC_CTYPE LC_NUMERIC LC_TIME LC_COLLATE LC_MONETARY LC_MESSAGES
+AcceptEnv LC_PAPER LC_NAME LC_ADDRESS LC_TELEPHONE LC_MEASUREMENT
+AcceptEnv LC_IDENTIFICATION LC_ALL LANGUAGE
+AcceptEnv XMODIFIERS
+Subsystem sftp  /usr/libexec/openssh/sftp-server
+ClientAliveInterval 120
+ClientAliveCountMax 2
+EOF
+systemctl reload sshd
+
+# sestatus
+setenforce permissive
+
+yum clean all; yum update -y; 
+yum -y git-all unzip 
+#yum -y install docker  epel-release && systemctl start docker
+
+#yum -y install pwgen  # Needs epel
+yum -y install tree   # For Testing / not Production
+
+export Srv=/srv
+  mkdir -p $Srv/{bin,BldTmp,env,etc/Knz,lib,run,www} ;
+cd $Srv/BldTmp/ 
+
+export GitUser=WpTestLabs
+GitClone () { git clone --depth 1 git://github.com/\$1/\$2.git;  }
+
+
+GitClone $GitUser MariaDbDkrCtrlLib-01
+
+
+export PackerVer=1.5.1
+curl -O https://releases.hashicorp.com/packer/$PackerVer/packer_${PackerVer}_linux_amd64.zip
+
+unzip -d /usr/local packer_${PackerVer}_linux_amd64.zip
+ln -s /usr/local/packer /usr/local/bin/packer.io
+packer.io > /x
+
