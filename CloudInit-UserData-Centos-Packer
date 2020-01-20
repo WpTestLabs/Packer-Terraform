@@ -20,7 +20,7 @@ GSSAPIAuthentication yes
 GSSAPICleanupCredentials no
 UsePAM yes
 X11Forwarding no
-UsePrivilegeSeparation sandbox          # Default for new installations.
+UsePrivilegeSeparation sandbox          # (hu) Default for new installations.
 AcceptEnv LANG LC_CTYPE LC_NUMERIC LC_TIME LC_COLLATE LC_MONETARY LC_MESSAGES
 AcceptEnv LC_PAPER LC_NAME LC_ADDRESS LC_TELEPHONE LC_MEASUREMENT
 AcceptEnv LC_IDENTIFICATION LC_ALL LANGUAGE
@@ -35,7 +35,7 @@ systemctl reload sshd
 setenforce permissive
 
 yum clean all; yum update -y; 
-yum -y git-all unzip 
+yum -y install git-all unzip 
 #yum -y install docker  epel-release && systemctl start docker
 
 #yum -y install pwgen  # Needs epel
