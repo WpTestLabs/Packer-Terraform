@@ -48,7 +48,7 @@ export Srv=/srv
 cd $Srv/BldTmp/ 
 
 export GitUser=WpTestLabs
-GitClone () { git clone --depth 1 git://github.com/\$1/\$2.git;  }
+GitClone () { git clone --depth 1 git://github.com/$1/$2.git;  }
 
 
 GitClone $GitUser MariaDbDkrCtrlLib-01
