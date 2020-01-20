@@ -1,12 +1,23 @@
 #!/bin/sh
 # UserData.sh -- github.com/WpTestLabs/Packer-Terraform/CloudInit-UserData-Centos-Packer
 
+TL () { echo "`cat /proc/uptime` -- $@" >> /TimeLine.txt; echo "TL>> $@"; }
+export -f TL
+
+cat > /W <<EOF
+#!/bin/sh
+watch cat /TimeLine.txt /proc/uptime
+EOF
+chmod +x /W
+TL "Start TimeLine"
+
 iptables -A INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
 iptables -A INPUT -i lo -j ACCEPT
 iptables -A INPUT -m conntrack --ctstate INVALID -j DROP
 iptables -A INPUT -i eth0 -p tcp --dport 22 -m state --state NEW,ESTABLISHED -j ACCEPT
 iptables -P INPUT DROP
 iptables -P FORWARD DROP
+TL "After iptables"
 
 cat >/etc/ssh/sshd_config <<EOF
 HostKey /etc/ssh/ssh_host_rsa_key
@@ -33,16 +44,18 @@ ClientAliveCountMax 2
 EOF
 systemctl reload sshd
 
+
 # sestatus
 setenforce permissive
-
+TL "Before yum..."
 yum clean all; yum update -y; 
+TL "After yum update"
 yum -y install git-all unzip 
 #yum -y install docker  epel-release && systemctl start docker
 
 #yum -y install pwgen  # Needs epel
 yum -y install tree   # For Testing / not Production
-
+TL "After all yum"
 export Srv=/srv
   mkdir -p $Srv/{bin,BldTmp,env,etc/Knz,lib,run,www} ;
 cd $Srv/BldTmp/ 
@@ -61,3 +74,4 @@ unzip -d /usr/local packer_${PackerVer}_linux_amd64.zip
 ln -s /usr/local/packer /usr/local/bin/packer.io
 packer.io > /x
 
+TL "*** userData Complete ***"
